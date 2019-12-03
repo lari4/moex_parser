@@ -25,17 +25,25 @@ if __name__ == "__main__":
     parser.add_argument(
         '-s',
         '--security',
-        help='Код базового актива.')
+        help='Код базового актива.',
+    )
     parser.add_argument(
         "-df",
         "--datefrom",
         help="Дата от - формат YYYY-MM-DD",
         required=True,
-        type=valid_date)
+        type=valid_date,
+    )
     parser.add_argument(
         "-dt",
         "--dateto",
         help="Дата до - формат YYYY-MM-DD",
-        type=valid_date)
+        type=valid_date,
+    )
+    parser.add_argument(
+        "-p",
+        "--path",
+        help="Директория для сохранения - ",
+    )
     args = parser.parse_args()
     main(args.security)
