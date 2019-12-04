@@ -49,7 +49,8 @@ def parse(security, date):
     base_url = "https://www.moex.com/api/contract/OpenOptionService/"
 
 
-def main(security):
+def main(security, date_from, date_to, path):
+
     data = parse(security)
 
 
@@ -67,12 +68,14 @@ if __name__ == "__main__":
         help="Дата от - формат DD-MM-YYYY",
         required=True,
         type=valid_date,
+        default=datetime.date.today()
     )
     parser.add_argument(
         "-dt",
         "--dateto",
-        help="Дата до - формат YYYY-MM-DD",
+        help="Дата до - формат DD-MM-YYYY",
         type=valid_date,
+        default=datetime.date.today()
     )
     parser.add_argument(
         "-p",
@@ -80,4 +83,4 @@ if __name__ == "__main__":
         help="Директория для сохранения - ",
     )
     args = parser.parse_args()
-    main(args.security)
+    main(args.security, args.datefrom, args.dateto, args.path)
