@@ -55,7 +55,8 @@ def parse(security, date):
         f"{base_url}{date}/F/{security}/json",
         headers=headers,
     )
-    return {date: response.json()}
+    if response.ok:
+        return {date: response.json()}
 
 
 def main(security, date_from, date_to, path):
