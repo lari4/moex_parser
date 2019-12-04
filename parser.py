@@ -1,5 +1,6 @@
 import argparse
 import datetime
+import requests
 import time
 import threading
 
@@ -47,6 +48,14 @@ def valid_date(s):
 @rate_limited(1)
 def parse(security, date):
     base_url = "https://www.moex.com/api/contract/OpenOptionService/"
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1)'
+                      ' AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
+    response = requests.get(
+        f"{base_url}{date}/F/{security}/json",
+        headers=headers,
+    )
+    return {date: response.json()}
 
 
 def main(security, date_from, date_to, path):
@@ -56,7 +65,7 @@ def main(security, date_from, date_to, path):
     data = []
     for date in range(date_delta.days + 1):
         day = date_from + datetime.timedelta(days=date)
-        parse(security, day.strftime("%d-%m-%Y"))
+        data.append(parse(security, day.strftime("%d-%m-%Y")))
 
 
 if __name__ == "__main__":
