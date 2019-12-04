@@ -38,7 +38,7 @@ def rate_limited(max_per_second):
 
 def valid_date(s):
     try:
-        return datetime.strptime(s, "%Y-%m-%d")
+        return datetime.strptime(s, "%d-%m-%Y")
     except ValueError:
         msg = "Неправильный формат даты: '{0}'.".format(s)
         raise argparse.ArgumentTypeError(msg)
@@ -55,7 +55,7 @@ def main(security):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description='Scrape a moex.')
+        description='Парсер сайта москвоской биржи.')
     parser.add_argument(
         '-s',
         '--security',
@@ -64,7 +64,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-df",
         "--datefrom",
-        help="Дата от - формат YYYY-MM-DD",
+        help="Дата от - формат DD-MM-YYYY",
         required=True,
         type=valid_date,
     )
