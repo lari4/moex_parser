@@ -38,7 +38,7 @@ def rate_limited(max_per_second):
 
 def valid_date(s):
     try:
-        return datetime.strptime(s, "%d-%m-%Y")
+        return datetime.datetime.strptime(s, "%d-%m-%Y")
     except ValueError:
         msg = "Неправильный формат даты: '{0}'.".format(s)
         raise argparse.ArgumentTypeError(msg)
@@ -50,8 +50,13 @@ def parse(security, date):
 
 
 def main(security, date_from, date_to, path):
-
-    data = parse(security)
+    if not date_to:
+        date_to = date_from
+    date_delta = date_to - date_from
+    data = []
+    for date in range(date_delta.days + 1):
+        day = date_from + datetime.timedelta(days=date)
+        parse(security, day.strftime("%d-%m-%Y"))
 
 
 if __name__ == "__main__":
@@ -65,17 +70,15 @@ if __name__ == "__main__":
     parser.add_argument(
         "-df",
         "--datefrom",
-        help="Дата от - формат DD-MM-YYYY",
-        required=True,
+        help="Дата от (включительно)- формат DD-MM-YYYY",
         type=valid_date,
         default=datetime.date.today()
     )
     parser.add_argument(
         "-dt",
         "--dateto",
-        help="Дата до - формат DD-MM-YYYY",
+        help="Дата до (включительно)- формат DD-MM-YYYY",
         type=valid_date,
-        default=datetime.date.today()
     )
     parser.add_argument(
         "-p",
