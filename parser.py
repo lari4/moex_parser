@@ -3,6 +3,7 @@ import datetime
 import requests
 import time
 import threading
+import xlsxwriter
 
 from functools import wraps
 
@@ -39,7 +40,7 @@ def rate_limited(max_per_second):
 
 def valid_date(s):
     try:
-        return datetime.datetime.strptime(s, "%d-%m-%Y")
+        return datetime.datetime.strptime(s, "%d.%m.%Y")
     except ValueError:
         msg = "Неправильный формат даты: '{0}'.".format(s)
         raise argparse.ArgumentTypeError(msg)
@@ -56,7 +57,32 @@ def parse(security, date):
         headers=headers,
     )
     if response.ok:
-        return {date: response.json()}
+        return date, response.json()
+
+
+def save_to_excel(path, data):
+    workbook = xlsxwriter.Workbook(path)
+    worksheet = workbook.add_worksheet()
+    for line, date_data in enumerate(data[::-1]):
+        column = 0
+        requested_date = date_data[0]
+        worksheet.write(line, column, requested_date)
+        column += 1
+        for _ in date_data[1]:
+            if column == 1:
+                worksheet.write(line, column, _['Date'])
+                column += 1
+            worksheet.write(line, column, _['PhysicalLong'])
+            column += 1
+            worksheet.write(line, column, _['PhysicalShort'])
+            column += 1
+            worksheet.write(line, column, _['JuridicalLong'])
+            column += 1
+            worksheet.write(line, column, _['JuridicalShort'])
+            column += 1
+            worksheet.write(line, column, _['Summary'])
+            column += 1
+    workbook.close()
 
 
 def main(security, date_from, date_to, path):
@@ -66,7 +92,12 @@ def main(security, date_from, date_to, path):
     data = []
     for date in range(date_delta.days + 1):
         day = date_from + datetime.timedelta(days=date)
-        data.append(parse(security, day.strftime("%d-%m-%Y")))
+        data.append(parse(security, day.strftime("%d.%m.%Y")))
+    save_to_excel(
+        path=f'{security}_{date_from.strftime("%d.%m.%Y")}'
+             f'_{date_to.strftime("%d.%m.%Y")}.xlsx',
+        data=data,
+    )
 
 
 if __name__ == "__main__":
@@ -80,14 +111,14 @@ if __name__ == "__main__":
     parser.add_argument(
         "-df",
         "--datefrom",
-        help="Дата от (включительно)- формат DD-MM-YYYY",
+        help="Дата от (включительно)- формат DD.MM.YYYY",
         type=valid_date,
         default=datetime.date.today()
     )
     parser.add_argument(
         "-dt",
         "--dateto",
-        help="Дата до (включительно)- формат DD-MM-YYYY",
+        help="Дата до (включительно)- формат DD.MM.YYYY",
         type=valid_date,
     )
     parser.add_argument(
