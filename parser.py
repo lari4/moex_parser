@@ -25,6 +25,18 @@ def test_internet_connection():
         return False
 
 
+def test_moex_connection():
+    try:
+        response = requests.get(
+            "https://www.moex.com/",
+            headers=HEADERS,
+        )
+        if response.ok:
+            return True
+    except Exception as err:
+        return False
+
+
 def rate_limited(max_per_second):
     """
     Decorator that make functions not be called faster than
@@ -101,6 +113,8 @@ def save_to_excel(path, data):
 
 def main(security, date_from, date_to, path):
     if not test_internet_connection():
+        sys.exit(0)
+    if not test_moex_connection():
         sys.exit(0)
     if not date_to:
         date_to = date_from
