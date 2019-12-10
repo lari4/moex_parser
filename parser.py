@@ -163,6 +163,7 @@ if __name__ == "__main__":
         '-s',
         '--security',
         help='Код базового актива.',
+        required=True,
     )
     parser.add_argument(
         "-df",
