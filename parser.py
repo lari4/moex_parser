@@ -31,7 +31,7 @@ def test_internet_connection():
 def test_moex_connection():
     try:
         response = requests.get(
-            "https://www.moex.com/",
+            "https://moex.com/",
             headers=HEADERS,
         )
         if response.ok:
