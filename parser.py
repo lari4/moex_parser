@@ -7,6 +7,8 @@ import threading
 import xlsxwriter
 
 from functools import wraps
+from loguru import logger
+
 
 HEADERS = {
         'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1)'
@@ -22,6 +24,7 @@ def test_internet_connection():
         if response.ok:
             return True
     except Exception as err:
+        logger.debug(f"Internet connection error: {err}")
         return False
 
 
@@ -34,6 +37,7 @@ def test_moex_connection():
         if response.ok:
             return True
     except Exception as err:
+        logger.debug(f"Moex connection error: {err}")
         return False
 
 
@@ -77,44 +81,58 @@ def valid_date(s):
 
 @rate_limited(1)
 def parse(security, date):
+    logger.info(f"Скачивание данных для: {security} {date}")
     base_url = "https://www.moex.com/api/contract/OpenOptionService/"
     response = requests.get(
         f"{base_url}{date}/F/{security}/json",
         headers=HEADERS,
     )
     if response.ok:
-        return date, response.json()
+        if response.json():
+            return date, response.json()
+    else:
+        logger.error(f"Ошибка получения данных для: {security} {date}")
 
 
 def save_to_excel(path, data):
-    workbook = xlsxwriter.Workbook(path)
-    worksheet = workbook.add_worksheet()
-    for line, date_data in enumerate(data[::-1]):
-        column = 0
-        requested_date = date_data[0]
-        worksheet.write(line, column, requested_date)
-        column += 1
-        for _ in date_data[1]:
-            if column == 1:
-                worksheet.write(line, column, _['Date'])
+    logger.info(f"Сохранение данных в файл {path}")
+    try:
+        workbook = xlsxwriter.Workbook(path)
+        worksheet = workbook.add_worksheet()
+        for line, date_data in enumerate(data[::-1]):
+            column = 0
+            requested_date = date_data[0]
+            worksheet.write(line, column, requested_date)
+            column += 1
+            for _ in date_data[1]:
+                if column == 1:
+                    worksheet.write(line, column, _['Date'])
+                    column += 1
+                worksheet.write(line, column, _['PhysicalLong'])
                 column += 1
-            worksheet.write(line, column, _['PhysicalLong'])
-            column += 1
-            worksheet.write(line, column, _['PhysicalShort'])
-            column += 1
-            worksheet.write(line, column, _['JuridicalLong'])
-            column += 1
-            worksheet.write(line, column, _['JuridicalShort'])
-            column += 1
-            worksheet.write(line, column, _['Summary'])
-            column += 1
-    workbook.close()
+                worksheet.write(line, column, _['PhysicalShort'])
+                column += 1
+                worksheet.write(line, column, _['JuridicalLong'])
+                column += 1
+                worksheet.write(line, column, _['JuridicalShort'])
+                column += 1
+                worksheet.write(line, column, _['Summary'])
+                column += 1
+        workbook.close()
+        return True
+    except Exception as err:
+        logger.error(f"Ошибка сохранения в файл: {err}")
+        return False
 
 
 def main(security, date_from, date_to, path):
+    logger.info(f"Запуск скачивания с параметрами инструмент={security} с={date_from} "
+                f"по={date_to} директория={path}")
     if not test_internet_connection():
+        logger.error(f"Нет подключения к интернету!")
         sys.exit(0)
     if not test_moex_connection():
+        logger.error(f"Нет подключения к сайту москвоской биржи!")
         sys.exit(0)
     if not date_to:
         date_to = date_from
@@ -124,13 +142,18 @@ def main(security, date_from, date_to, path):
         day = date_from + datetime.timedelta(days=date)
         parsed_data = parse(security, day.strftime("%d.%m.%Y"))
         if parsed_data:
-            data.append()
+            data.append(parsed_data)
+        else:
+            logger.info(f"Для {security} нет данных за {day.strftime('%d.%m.%Y')}")
     if data:
         save_to_excel(
             path=f'{security}_{date_from.strftime("%d.%m.%Y")}'
                  f'_{date_to.strftime("%d.%m.%Y")}.xlsx',
             data=data,
         )
+    else:
+        logger.info(f"Нет данных для сохранения")
+    logger.info(f"Завершение работы")
 
 
 if __name__ == "__main__":
@@ -159,5 +182,14 @@ if __name__ == "__main__":
         "--path",
         help="Директория для сохранения - ",
     )
+    parser.add_argument(
+        "-l",
+        "--loglevel",
+        help="Уровень логирования",
+        default='INFO'
+    )
     args = parser.parse_args()
+    if args.loglevel == 'INFO':
+        logger.remove()
+        logger.add(sys.stdout, level="INFO")
     main(args.security, args.datefrom, args.dateto, args.path)
