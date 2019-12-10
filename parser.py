@@ -59,7 +59,7 @@ def rate_limited(max_per_second):
         last_time_called = [0.0]
 
         @wraps(func)
-        def rate_limited_function(*args, **kwargs):
+        def rate_limited_function(*a, **kwargs):
             lock.acquire()
             elapsed = time.perf_counter() - last_time_called[0]
             left_to_wait = min_interval - elapsed
@@ -69,7 +69,7 @@ def rate_limited(max_per_second):
 
             lock.release()
 
-            ret = func(*args, **kwargs)
+            ret = func(*a, **kwargs)
             last_time_called[0] = time.perf_counter()
             return ret
 
