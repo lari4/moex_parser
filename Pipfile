@@ -7,6 +7,7 @@ name = "pypi"
 requests = "*"
 loguru = "*"
 xlsxwriter = "*"
+win32-setctime = "*"
 
 [dev-packages]
 
