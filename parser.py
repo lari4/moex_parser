@@ -122,12 +122,15 @@ def main(security, date_from, date_to, path):
     data = []
     for date in range(date_delta.days + 1):
         day = date_from + datetime.timedelta(days=date)
-        data.append(parse(security, day.strftime("%d.%m.%Y")))
-    save_to_excel(
-        path=f'{security}_{date_from.strftime("%d.%m.%Y")}'
-             f'_{date_to.strftime("%d.%m.%Y")}.xlsx',
-        data=data,
-    )
+        parsed_data = parse(security, day.strftime("%d.%m.%Y"))
+        if parsed_data:
+            data.append()
+    if data:
+        save_to_excel(
+            path=f'{security}_{date_from.strftime("%d.%m.%Y")}'
+                 f'_{date_to.strftime("%d.%m.%Y")}.xlsx',
+            data=data,
+        )
 
 
 if __name__ == "__main__":
