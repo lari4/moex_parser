@@ -8,6 +8,7 @@ import xlsxwriter
 
 from functools import wraps
 from loguru import logger
+from pathlib import Path, PurePath
 
 
 HEADERS = {
@@ -134,6 +135,12 @@ def main(security, date_from, date_to, path):
     if not test_moex_connection():
         logger.error(f"Нет подключения к сайту москвоской биржи!")
         sys.exit(0)
+    if not path:
+        path = PurePath()
+    save_dir = Path(path)
+    if not save_dir.exists() and not save_dir.is_dir():
+        logger.error(f"Папка {path} не существует!")
+        sys.exit(0)
     if not date_to:
         date_to = date_from
     date_delta = date_to - date_from
@@ -146,11 +153,20 @@ def main(security, date_from, date_to, path):
         else:
             logger.info(f"Для {security} нет данных за {day.strftime('%d.%m.%Y')}")
     if data:
-        save_to_excel(
-            path=f'{security}_{date_from.strftime("%d.%m.%Y")}'
-                 f'_{date_to.strftime("%d.%m.%Y")}.xlsx',
+        if not save_to_excel(
+            path=save_dir / f'{security}_{date_from.strftime("%d.%m.%Y")}'
+                            f'_{date_to.strftime("%d.%m.%Y")}.xlsx',
             data=data,
-        )
+        ):
+            attempts = 0
+            while attempts < 5:
+                new_path = Path(input("Введите новую директорию для сохранения: "))
+                if save_to_excel(
+                    path=new_path / f'{security}_{date_from.strftime("%d.%m.%Y")}'
+                                    f'_{date_to.strftime("%d.%m.%Y")}.xlsx',
+                    data=data,
+                ):
+                    break
     else:
         logger.info(f"Нет данных для сохранения")
     logger.info(f"Завершение работы")
