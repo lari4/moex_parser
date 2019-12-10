@@ -8,6 +8,7 @@ requests = "*"
 loguru = "*"
 xlsxwriter = "*"
 win32-setctime = "*"
+pywin32 = "*"
 
 [dev-packages]
 
