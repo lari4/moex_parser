@@ -1,11 +1,28 @@
 import argparse
 import datetime
 import requests
+import sys
 import time
 import threading
 import xlsxwriter
 
 from functools import wraps
+
+HEADERS = {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1)'
+                      ' AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
+
+
+def test_internet_connection():
+    try:
+        response = requests.get(
+            "http://google.com",
+            headers=HEADERS,
+        )
+        if response.ok:
+            return True
+    except Exception as err:
+        return False
 
 
 def rate_limited(max_per_second):
@@ -49,12 +66,9 @@ def valid_date(s):
 @rate_limited(1)
 def parse(security, date):
     base_url = "https://www.moex.com/api/contract/OpenOptionService/"
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1)'
-                      ' AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
     response = requests.get(
         f"{base_url}{date}/F/{security}/json",
-        headers=headers,
+        headers=HEADERS,
     )
     if response.ok:
         return date, response.json()
@@ -86,6 +100,8 @@ def save_to_excel(path, data):
 
 
 def main(security, date_from, date_to, path):
+    if not test_internet_connection():
+        sys.exit(0)
     if not date_to:
         date_to = date_from
     date_delta = date_to - date_from
