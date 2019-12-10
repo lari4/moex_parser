@@ -16,6 +16,12 @@ HEADERS = {
                       ' AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
 
 
+def parse_number(number):
+    number = number.replace('\xa0', '')
+    number = number.replace(',', '.')
+    return number
+
+
 def test_internet_connection():
     try:
         response = requests.get(
@@ -100,6 +106,7 @@ def save_to_excel(path, data):
     try:
         workbook = xlsxwriter.Workbook(path)
         worksheet = workbook.add_worksheet()
+
         for line, date_data in enumerate(data[::-1]):
             column = 0
             requested_date = date_data[0]
@@ -109,15 +116,15 @@ def save_to_excel(path, data):
                 if column == 1:
                     worksheet.write(line, column, _['Date'])
                     column += 1
-                worksheet.write(line, column, _['PhysicalLong'])
+                worksheet.write_number(line, column, float(parse_number(_['PhysicalLong'])))
                 column += 1
-                worksheet.write(line, column, _['PhysicalShort'])
+                worksheet.write_number(line, column, float(parse_number(_['PhysicalShort'])))
                 column += 1
-                worksheet.write(line, column, _['JuridicalLong'])
+                worksheet.write_number(line, column, float(parse_number(_['JuridicalLong'])))
                 column += 1
-                worksheet.write(line, column, _['JuridicalShort'])
+                worksheet.write_number(line, column, float(parse_number(_['JuridicalShort'])))
                 column += 1
-                worksheet.write(line, column, _['Summary'])
+                worksheet.write_number(line, column, float(parse_number(_['Summary'])))
                 column += 1
         workbook.close()
         return True
