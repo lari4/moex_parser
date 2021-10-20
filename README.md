@@ -1,4 +1,4 @@
-# coex_parser
+# moex_parser
 Moex API examples:
 https://iss.moex.com/iss/engines/futures/markets/forts/boards/RFUD/securities/RIU1.jsonp
 https://iss.moex.com/iss/history/engines/futures/markets/forts/boards/RFUD/dates
