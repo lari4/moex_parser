@@ -304,3 +304,4 @@ if __name__ == "__main__":
         logger.remove()
         logger.add(sys.stdout, level="INFO")
     main(args.security, args.datefrom, args.dateto, args.path)
+    print(1/0)
